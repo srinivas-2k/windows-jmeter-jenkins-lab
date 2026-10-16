@@ -143,7 +143,9 @@ if not exist "%RESULTS_DIR%\results.jtl" (
     echo [run-jmeter] ERROR: no results.jtl was produced.
     exit /b 3
 )
-for /f %%C in ('type "%RESULTS_DIR%\results.jtl" ^| find /c /v ""') do set "JTL_LINES=%%C"
+rem Full path on purpose: if Git's usr\bin is on PATH before System32, a bare "find" is GNU find,
+rem which ignores these switches and starts walking the whole C: drive.
+for /f %%C in ('type "%RESULTS_DIR%\results.jtl" ^| "%SystemRoot%\System32\find.exe" /c /v ""') do set "JTL_LINES=%%C"
 if %JTL_LINES% LSS 2 (
     echo [run-jmeter] ERROR: results.jtl has no samples - did any thread start? Check users/duration.
     exit /b 3
