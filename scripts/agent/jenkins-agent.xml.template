@@ -1,0 +1,34 @@
+<!--
+  WinSW v2 service definition for the Jenkins inbound agent on the JMeter machine.
+
+  Install-JenkinsAgentService.ps1 copies this file to C:\jenkins-agent\jenkins-agent.xml and
+  replaces the __PLACEHOLDERS__. The XML must have the SAME base name as the WinSW executable
+  (jenkins-agent.exe <-> jenkins-agent.xml) - that is how WinSW finds its configuration.
+
+  Why each argument:
+    -Xrs                 Java ignores console Ctrl+C/logoff signals (recommended for services)
+    -jar agent.jar       the Jenkins Remoting client, downloaded from the controller so the
+                         versions match: http://<controller>/jnlpJars/agent.jar
+    -url                 the Jenkins URL exactly as configured in Manage Jenkins > System
+    -name                must equal the node name in Jenkins
+    -secret @file        "@" means "read the value from this file" - keeps the secret out of
+                         the command line, so it does not show in Task Manager / process lists
+    -webSocket           connect over the normal HTTP port (8080); no TCP port 50000 needed
+    -workDir             where Remoting keeps logs and its jar cache
+-->
+<service>
+  <id>jenkins-agent</id>
+  <name>Jenkins Agent (__AGENT_NAME__)</name>
+  <description>Jenkins inbound agent that runs JMeter builds for __JENKINS_URL__</description>
+  <executable>__JAVA_EXE__</executable>
+  <arguments>-Xrs -jar "%BASE%\agent.jar" -url __JENKINS_URL__ -name __AGENT_NAME__ -secret @__SECRET_FILE__ -webSocket -workDir "__WORK_DIR__"</arguments>
+  <startmode>Automatic</startmode>
+  <delayedAutoStart/>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="30 sec"/>
+  <resetfailure>1 hour</resetfailure>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

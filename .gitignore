@@ -1,0 +1,21 @@
+# Personal assistant instructions - never published
+claude.md
+CLAUDE.md
+.claude/
+
+# Test output (Jenkins archives the copies that matter)
+results/
+*.jtl
+jmeter.log
+html-report/
+
+# Secrets and local overrides
+secret.txt
+*.secret
+config/env/*.local.properties
+
+# OS / editor noise
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

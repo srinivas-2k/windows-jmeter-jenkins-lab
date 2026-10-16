@@ -1,0 +1,12 @@
+# Windows batch files MUST keep CRLF line endings: cmd.exe mis-parses labels and multi-line
+# commands in LF-only .bat files. PowerShell is fine either way; CRLF keeps diffs consistent.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+*.groovy text eol=lf
+Jenkinsfile text eol=lf
+*.jmx   text eol=lf
+*.csv   text eol=lf
+*.md    text eol=lf
+*.java  text eol=lf
+*.sh    text eol=lf

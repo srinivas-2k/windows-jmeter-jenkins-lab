@@ -1,0 +1,24 @@
+# ShopLite API on Docker Desktop (Jenkins host 192.168.0.11)
+#
+#   Run on: JENKINS-CTRL (192.168.0.11). Shell: PowerShell or CMD, in this folder.
+#     docker compose up -d --build        # build image + start container
+#     docker compose ps                   # status
+#     docker compose logs -f              # follow logs (Ctrl+C to stop following)
+#     docker compose down                 # stop + remove container
+#
+# Reach it from the JMeter agent: http://192.168.0.11:8081/health
+# (needs the Windows Firewall rule for TCP 8081 - see docs/guides/lab-build-log.md)
+#
+# Why the SUT may live on the Jenkins host in THIS lab: it is a tiny demo API and the lab has two
+# Windows machines. Load is still GENERATED on the separate JMeter agent. In a real project the
+# system under test runs in its own environment, never on the CI controller.
+services:
+  shoplite:
+    build: .
+    image: shoplite-api:1.0
+    container_name: shoplite-api
+    ports:
+      - "8081:8081"
+    restart: unless-stopped        # comes back after Docker Desktop restarts
+    cpus: 2.0                      # keep the demo API from starving Jenkins on the same host
+    mem_limit: 512m
