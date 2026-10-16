@@ -48,15 +48,22 @@ pipeline {
         stage('Pre-flight') {
             steps {
                 // Fails in seconds if Java/JMeter/target are missing - before we spend minutes testing
-                powershell ".\\scripts\\check-agent-prereqs.ps1 -TargetEnv '${params.TARGET_ENV}'"
+                withEnv(runEnv(params)) {
+                    powershell ".\\scripts\\check-agent-prereqs.ps1 -TargetEnv '${params.TARGET_ENV}'"
+                }
             }
         }
 
         stage('Run JMeter') {
             steps {
-                // Parameters reach the batch file as environment variables (USERS, RAMP_UP, ...).
+                // The batch file reads its settings from environment variables. We pass them
+                // EXPLICITLY with withEnv: on the very first build of a parameterised Pipeline, Jenkins
+                // has not registered the parameters yet - params.X still returns the default, but the
+                // parameters are NOT exported as environment variables (Episode 12).
                 // 'call' is not needed here: the bat step runs our line in its own cmd.exe.
-                bat "scripts\\run-jmeter.bat ${params.TEST_NAME}"
+                withEnv(runEnv(params)) {
+                    bat "scripts\\run-jmeter.bat ${params.TEST_NAME}"
+                }
             }
         }
 
@@ -102,4 +109,15 @@ pipeline {
             cleanWs(deleteDirs: true, notFailBuild: true, patterns: [[pattern: 'results/**', type: 'INCLUDE']])
         }
     }
+}
+
+// Build the environment for the JMeter scripts from the job parameters.
+// Optional overrides are only added when filled in: an empty TARGET_HOST must mean
+// "use the env file", not "connect to an empty host name".
+def runEnv(p) {
+    def e = ["TARGET_ENV=${p.TARGET_ENV}", "USERS=${p.USERS}", "RAMP_UP=${p.RAMP_UP}",
+             "DURATION=${p.DURATION}", "LOOPS=${p.LOOPS}", "THINK_MS=${p.THINK_MS}"]
+    if (p.TARGET_HOST?.trim()) { e << "TARGET_HOST=${p.TARGET_HOST.trim()}" }
+    if (p.TARGET_PORT?.trim()) { e << "TARGET_PORT=${p.TARGET_PORT.trim()}" }
+    return e
 }
